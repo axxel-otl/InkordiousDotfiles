@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-# --- Info ---
-declare -A repo
-repo=([Git Tools]='https://github.com/Axxel-otl/git-tools.git')
-
 # --- Color Configs ---
 GREY='\033[38;2;169;174;239m' # #A9AEEF
 PINK='\033[38;2;255;92;120m'  # #FF5C78
@@ -24,4 +20,4 @@ echo -e "${RED}  Dots${NC}: install"
 echo -e "${GREY}=========================${NC}"
 
 # CHECKPOINT
-#Now I should make it search for dependencies but idk how to check them or if i should use yaml or smthng
+#Now I should make it search for dependencies but idk how to check them, I'll improvise

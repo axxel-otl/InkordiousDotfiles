@@ -3,3 +3,6 @@ dependencies:
   git:
     package: "git"
     repo: "extra"
+repos:
+  git-tools:
+    url: "https://github.com/Axxel-otl/git-tools.git"
