@@ -29,10 +29,13 @@ if ! paru -Qq go-yq &>/dev/null; then
     echo -e "${RED}❌️ ERROR${NC}: yq is required to run the installer"
 
     # --- Install yq ---
+    cmd=(sudo pacman -Sq --needed extra/go-yq)
+    echo "${cmd[0]}"
+    echo -e "${YELLOW}❕️You can install yq this way${NC}: ${cmd[@]}"
     read -p "Install yq (y/n)? " i
     if [[ $i == "y" ]]; then
         echo "Installing yq..."
-        sudo pacman -S --needed extra/go-yq
+        sudo pacman -Sq --needed extra/go-yq
     else
         echo -e "${RED}ERROR${NC}: Couldn't install yq, aborting install..."
         exit 1
@@ -59,7 +62,7 @@ done
 if (( ${#failed[@]} )); then
     echo -e "${RED}❌️ ERROR${NC}: Dependencies ${failed[@]} not installed"
 
-    cmd=(paru -S "${failed[@]}")
+    cmd=(sudo pacman -Sq --needed "${failed[@]}")
     echo "${cmd[@]}"
     echo -e "${YELLOW}❕️You can install the missing dependencies this way${NC}: ${cmd[@]}"
 
