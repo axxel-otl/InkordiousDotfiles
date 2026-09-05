@@ -11,7 +11,7 @@ PINK='\033[38;2;255;92;120m'  # #FF5C78
 GREEN='\033[38;2;155;254;206m' # #9BFECE
 YELLOW='\033[38;2;255;245;155m' # #FFF59B
 RED='\033[38;2;253;70;99m' # #FD4663
-NC='\033[0m' # Sin color
+NC='\033[0m' # No Color
 
 # --- INK banner ---
 echo -e "${GREY}=========================${NC}"
@@ -24,25 +24,46 @@ echo -e "${GREY}  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝"
 echo -e "${RED}  Dots${NC}: install"
 echo -e "${GREY}=========================${NC}"
 
-# Now I should make it search for dependencies but idk how to check them, I'll improvise
-DEPS=$(yq ".dependencies | keys[]" ./manifest.yaml)
-echo "$DEPS" # !
-failed=()
+# --- Detect Dependencies ---
+if ! command -v yq &>/dev/null; then
+    echo -e "${RED}❌️ ERROR${NC}: yq is required to run the installer"
+    read -p "Install yq (y/n)? " i
+    if [[ $i == "y" ]]; then
+        echo "Installing yq..."
+        sudo pacman -S --needed extra/go-yq
+    else
+        echo -e "${RED}ERROR${NC}: Couldn't install yq, aborting install..."
+        exit 1
+    fi
+fi
 
-for d in ${DEPS};
+k=$(yq ".dependencies | keys[]" ./manifest.yaml)
+echo "$k" # !
+failed=() # This is not a function XD
+
+for d in ${k};
 do
     p=$(yq ".dependencies.$d.package" ./manifest.yaml)
     r=$(yq ".dependencies.$d.repo" ./manifest.yaml)
-    echo "$r/$p" # !
+    f="$r/$p"
+    echo "$r, $p, $r/$p, $f" # !
     if ! pacman -Qq $p &>/dev/null; then
         echo -e "${RED}❌️ ERROR${NC}: package $r/$p is not installed"
-        failed+=("$r/$p")
+        failed+=("$f")
     fi
 done
-if ((${#failed[@]})); then
-    echo -e "${RED}❌️ ERROR${NC}: Failed installing ${GREY}Inkordious Dotfiles${NC} due to package not installed"
-    echo "${failed[@]}"
-    exit 1
+if (( ${#failed[@]} )); then
+    echo -e "${RED}❌️ ERROR${NC}: Dependencies ${failed[@]} not installed"
+    cmd=(paru -S "${failed[@]}")
+    echo "${cmd[@]}"
+    echo -e "${YELLOW}❕️You can install the missing dependencies this way${NC}: ${cmd[@]}"
+    read -p "Install (y/n)? " i
+    echo $i # !
+    if [[ ${i,,} == "y" ]]; then
+        # Install missing dependencies
+        "${cmd[@]}"
+        exit 1
+    fi
 else
     echo -e "${GREEN}✅️ All dependencies installed${NC}"
 fi

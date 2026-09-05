@@ -6,12 +6,13 @@ dependencies:
   yq:
     package: "go-yq"
     repo: "extra"
-#  foo:
-#    package: "bar"
-#    repo: "baz"
-#  qux:
-#    package: "quux"
-#    repo: "corge"
+# --- debugging ---
+#!  foo:
+#!    package: "bar"
+#!    repo: "baz"
+#!  qux:
+#!    package: "quux"
+#!    repo: "corge"
 repos:
   git-tools:
     ssh: "git@gitlab.com:axxel-otl/git-tools.git"
