@@ -3,6 +3,16 @@ dependencies:
   git:
     package: "git"
     repo: "extra"
+  yq:
+    package: "go-yq"
+    repo: "extra"
+#  foo:
+#    package: "bar"
+#    repo: "baz"
+#  qux:
+#    package: "quux"
+#    repo: "corge"
 repos:
   git-tools:
-    url: "https://github.com/Axxel-otl/git-tools.git"
+    ssh: "git@gitlab.com:axxel-otl/git-tools.git"
+    url: "https://gitlab.com/axxel-otl/git-tools.git"
