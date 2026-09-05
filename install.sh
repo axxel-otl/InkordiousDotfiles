@@ -3,7 +3,7 @@
 #!/usr/bin/env bash
 
 # --- Settings ---
-set -euo pipefail
+set -euo pipefail # exit with fail, no unset, activate pipefail
 
 # --- Color Configs ---
 GREY='\033[38;2;169;174;239m' # #A9AEEF
@@ -24,9 +24,11 @@ echo -e "${GREY}  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝"
 echo -e "${RED}  Dots${NC}: install"
 echo -e "${GREY}=========================${NC}"
 
-# --- Detect Dependencies ---
-if ! command -v yq &>/dev/null; then
+# --- Detect yq ---
+if ! paru -Qq go-yq &>/dev/null; then
     echo -e "${RED}❌️ ERROR${NC}: yq is required to run the installer"
+
+    # --- Install yq ---
     read -p "Install yq (y/n)? " i
     if [[ $i == "y" ]]; then
         echo "Installing yq..."
@@ -37,26 +39,30 @@ if ! command -v yq &>/dev/null; then
     fi
 fi
 
+# --- Detect Dependencies ---
 k=$(yq ".dependencies | keys[]" ./manifest.yaml)
 echo "$k" # !
-failed=() # This is not a function XD
+failed=()
 
-for d in ${k};
-do
+for d in ${k}; do
     p=$(yq ".dependencies.$d.package" ./manifest.yaml)
     r=$(yq ".dependencies.$d.repo" ./manifest.yaml)
     f="$r/$p"
     echo "$r, $p, $r/$p, $f" # !
+
     if ! pacman -Qq $p &>/dev/null; then
         echo -e "${RED}❌️ ERROR${NC}: package $r/$p is not installed"
         failed+=("$f")
     fi
 done
+
 if (( ${#failed[@]} )); then
     echo -e "${RED}❌️ ERROR${NC}: Dependencies ${failed[@]} not installed"
+
     cmd=(paru -S "${failed[@]}")
     echo "${cmd[@]}"
     echo -e "${YELLOW}❕️You can install the missing dependencies this way${NC}: ${cmd[@]}"
+
     read -p "Install (y/n)? " i
     echo $i # !
     if [[ ${i,,} == "y" ]]; then
