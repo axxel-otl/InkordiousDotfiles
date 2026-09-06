@@ -13,3 +13,6 @@ repos:
   git-tools:
     ssh: "git@gitlab.com:axxel-otl/git-tools.git"
     url: "https://gitlab.com/axxel-otl/git-tools.git"
+  zsh:
+    ssh: "git@gitlab.com:axxel-otl/zsh.git"
+    url: "https://gitlab.com/axxel-otl/zsh.git"
