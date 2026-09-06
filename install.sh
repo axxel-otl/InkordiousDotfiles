@@ -40,7 +40,7 @@ else
     echo -e "${RED}  Dots${NC}: install"
     echo -e "${GREY}=========================${NC}"
 
-    globalManifest=$(curl -LfsS https://gitlab.com/axxel-otl/InkordiousDotfiles/-/raw/core/manifest.yaml?ref_type=heads)
+    globalManifest=$(curl -LfsS "https://gitlab.com/axxel-otl/InkordiousDotfiles/-/raw/core/manifest.yaml?ref_type=heads")
 
     # --- Detect yq ---
     if ! pacman -Qq "go-yq" &>/dev/null; then
