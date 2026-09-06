@@ -1,5 +1,3 @@
-# Comments that only contain "!" mean they're debugging commands and I will delete them when I finish this part of the install script
-
 #!/usr/bin/env bash
 
 # --- Settings ---
@@ -25,17 +23,16 @@ echo -e "${RED}  Dots${NC}: install"
 echo -e "${GREY}=========================${NC}"
 
 # --- Detect yq ---
-if ! paru -Qq go-yq &>/dev/null; then
+if ! pacman -Qq "go-yq" &>/dev/null; then
     echo -e "${RED}❌️ ERROR${NC}: yq is required to run the installer"
 
     # --- Install yq ---
-    cmd=(sudo pacman -Sq --needed extra/go-yq)
-    echo "${cmd[0]}"
+    cmd=(sudo pacman -Sq --needed "extra/go-yq")
     echo -e "${YELLOW}❕️You can install yq this way${NC}: ${cmd[@]}"
-    read -p "Install yq (y/n)? " i
-    if [[ $i == "y" ]]; then
+    read -rp "Install yq (y/n)? " install
+    if [[ ${install,,} == "y" ]]; then
         echo "Installing yq..."
-        sudo pacman -Sq --needed extra/go-yq
+        sudo pacman -Sq --needed "extra/go-yq"
     else
         echo -e "${RED}ERROR${NC}: Couldn't install yq, aborting install..."
         exit 1
@@ -43,17 +40,15 @@ if ! paru -Qq go-yq &>/dev/null; then
 fi
 
 # --- Detect Dependencies ---
-k=$(yq ".dependencies | keys[]" ./manifest.yaml)
-echo "$k" # !
+keys=$(yq ".dependencies | keys[]" ./manifest.yaml)
 failed=()
 
-for d in ${k}; do
-    p=$(yq ".dependencies.$d.package" ./manifest.yaml)
-    r=$(yq ".dependencies.$d.repo" ./manifest.yaml)
+for k in ${keys}; do
+    p=$(yq ".dependencies.$k.package" ./manifest.yaml)
+    r=$(yq ".dependencies.$k.repo" ./manifest.yaml)
     f="$r/$p"
-    echo "$r, $p, $r/$p, $f" # !
 
-    if ! pacman -Qq $p &>/dev/null; then
+    if ! pacman -Qq "$p" &>/dev/null; then
         echo -e "${RED}❌️ ERROR${NC}: package $r/$p is not installed"
         failed+=("$f")
     fi
@@ -66,13 +61,28 @@ if (( ${#failed[@]} )); then
     echo "${cmd[@]}"
     echo -e "${YELLOW}❕️You can install the missing dependencies this way${NC}: ${cmd[@]}"
 
-    read -p "Install (y/n)? " i
-    echo $i # !
-    if [[ ${i,,} == "y" ]]; then
+    read -rp "Install (y/n)? " install
+    if [[ ${install,,} == "y" ]]; then
         # Install missing dependencies
         "${cmd[@]}"
+    else
         exit 1
     fi
 else
     echo -e "${GREEN}✅️ All dependencies installed${NC}"
 fi
+
+# --- Create dots directory ---
+sudo mkdir -p /opt/dots
+sudo chown "$USER:$USER" /opt/dots
+chmod 755 /opt/dots
+
+# --- Clone repos ---
+keys=$(yq ".repos | keys[]" ./manifest.yaml)
+for k in $keys; do
+    if [[ $k == "dots" ]] || ( read -rp "Clone and install $k (y/n)?" install; [[ ${install,,} == y ]] ); then
+        ssh=$(yq ".repos.$k.ssh" ./manifest.yaml)
+        url=$(yq ".repos.$k.url" ./manifest.yaml)
+        git clone "$ssh" "/opt/dots/$k" || git clone "$url" "/opt/dots/$k"
+    fi
+done

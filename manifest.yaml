@@ -6,14 +6,10 @@ dependencies:
   yq:
     package: "go-yq"
     repo: "extra"
-# --- debugging ---
-#!  foo:
-#!    package: "bar"
-#!    repo: "baz"
-#!  qux:
-#!    package: "quux"
-#!    repo: "corge"
 repos:
+  dots:
+    ssh: "git@gitlab.com:axxel-otl/InkordiousDotfiles"
+    url: "https://gitlab.com/axxel-otl/InkordiousDotfiles"
   git-tools:
     ssh: "git@gitlab.com:axxel-otl/git-tools.git"
     url: "https://gitlab.com/axxel-otl/git-tools.git"
