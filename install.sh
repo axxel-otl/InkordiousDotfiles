@@ -25,9 +25,14 @@ if [[ "${1:-}" == "-u" ]]; then
     echo -e "${RED}  Dots${NC}: uninstall"
     echo -e "${GREY}=========================${NC}"
 
-    echo -e "${RED}Removing ${NC}/opt/dots..."
-    sudo rm -rf "/opt/dots"
-    echo -e "${GREEN}✅️ Finished uninstalling the Inkordious Dotfiles"
+    read -rp "Are you sure you want to uninstall the Inkordious Dotfiles(y/n)?" u
+    if [[${u,,} == "y"]]; then
+        echo -e "${RED}Removing ${NC}/opt/dots..."
+        sudo rm -rf "/opt/dots"
+        echo -e "${GREEN}✅️ Finished uninstalling the Inkordious Dotfiles"
+    else
+        echo -e "${READ}Aborting Uninstall..."
+    fi
 else
     # --- INK Banner ---
     echo -e "${GREY}=========================${NC}"
