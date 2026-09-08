@@ -45,8 +45,6 @@ else
     echo -e "${RED}  Dots${NC}: install"
     echo -e "${GREY}=========================${NC}"
 
-    globalManifest=$(curl -LfsS "https://gitlab.com/axxel-otl/InkordiousDotfiles/-/raw/core/manifest.yaml?ref_type=heads")
-
     # --- Detect yq ---
     if ! pacman -Qq "go-yq" &>/dev/null; then
         echo -e "${RED}❌️ ERROR${NC}: yq is required to run the installer"
@@ -65,13 +63,16 @@ else
         fi
     fi
 
+    # --- Manifest ---
+    globalManifest=$(curl -LfsS "https://gitlab.com/axxel-otl/InkordiousDotfiles/-/raw/core/manifest.yaml?ref_type=heads")
+
     # --- Detect Dependencies ---
-    keys=$(yq ".dependencies | keys[]" <<< $globalManifest)
+    keys=$(yq ".dependencies // {} | keys[]" <<< $globalManifest)
     failed=()
 
-    for k in ${keys}; do
-        p=$(yq ".dependencies.$k.package" <<< $globalManifest)
-        r=$(yq ".dependencies.$k.repo" <<< $globalManifest)
+    for k in $keys; do
+        p=$(yq ".dependencies.$k.package // ''" <<< $globalManifest)
+        r=$(yq ".dependencies.$k.repo // ''" <<< $globalManifest)
         f="$r/$p"
 
         if pacman -Qq "$p" &>/dev/null; then
@@ -108,17 +109,18 @@ else
     chmod 755 /opt/dots
 
     # --- Clone repos ---
-    keys=$(yq ".repos | keys[]" <<< $globalManifest)
+    keys=$(yq ".repos // {} | keys[]" <<< $globalManifest)
     for k in $keys; do
         if [[ $k == "dots" ]] || ( read -rp "Clone and install $k (y/n)? " install; [[ ${install,,} == y ]] ); then
             route="/opt/dots/$k"
 
             # --- Clone ---
-            ssh=$(yq ".repos.$k.ssh" <<< $globalManifest)
-            url=$(yq ".repos.$k.url" <<< $globalManifest)
+            ssh=$(yq ".repos.$k.ssh // ''" <<< $globalManifest)
+            url=$(yq ".repos.$k.url // ''" <<< $globalManifest)
             git clone "$ssh" "$route" || git clone "$url" "$route"
 
             # --- Install ---
+            for 
         fi
     done
 
