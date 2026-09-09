@@ -25,11 +25,19 @@ if [[ "${1:-}" == "-u" ]]; then
     echo -e "${RED}  Dots${NC}: Uninstall"
     echo -e "${GREY}=========================${NC}"
 
-    read -rp "Are you sure you want to uninstall the Inkordious Dotfiles(y/n)? " u
+    read -rp "Are you sure you want to uninstall the Inkordious Dotfiles (y/n) ? " u
     if [[ ${u,,} == "y" ]]; then
-        echo -e "${RED}Removing ${NC}/opt/dots..."
-        sudo rm -rf "/opt/dots"
-        echo -e "${GREEN}✅️ Finished uninstalling the Inkordious Dotfiles"
+        echo "The following files or directories are linked to the Inkordious Dotfiles: "
+        find "$HOME" -type l -lname '/opt/dots/*' -printf '%p ' 2>/dev/null || true
+        echo
+        read -rp "Remove them (y/n) ? " u
+        if [[ ${u,,} == "y" ]]; then
+            echo -e "${RED}Removing ${NC}/opt/dots..."
+            sudo rm -rf "/opt/dots"
+            echo -e "${GREEN}✅️ Finished uninstalling the Inkordious Dotfiles"
+        else
+            echo -e "${RED}Aborting Uninstall..."
+        fi
     else
         echo -e "${RED}Aborting Uninstall..."
     fi
@@ -52,7 +60,7 @@ else
         # --- Install yq ---
         cmd=(sudo pacman -Sq --needed "extra/go-yq")
         echo -e "${YELLOW}❕️You can install yq this way${NC}: ${cmd[@]}"
-        read -rp "Install yq (y/n)? " install
+        read -rp "Install yq (y/n) ? " install
         if [[ ${install,,} == "y" ]]; then
             echo "Installing yq..."
             sudo pacman -Sq --needed "extra/go-yq"
@@ -91,7 +99,7 @@ else
         echo "${cmd[@]}"
         echo -e "${YELLOW}❕️You can install the missing dependencies this way${NC}: ${cmd[@]}"
 
-        read -rp "Install (y/n)? " install
+        read -rp "Install (y/n) ? " install
         if [[ ${install,,} == "y" ]]; then
             # Install missing dependencies
             "${cmd[@]}"
@@ -117,7 +125,7 @@ else
     # --- Clone repos ---
     keys=$(yq ".repos // {} | keys[]" <<< "$globalManifest")
     for k in $keys; do
-        if [[ $k == "dots" ]] || ( read -rp "Clone and install $k (y/n)? " install; [[ ${install,,} == "y" ]] ); then
+        if [[ $k == "dots" ]] || ( read -rp "Clone and install $k (y/n) ? " install; [[ ${install,,} == "y" ]] ); then
             path="/opt/dots/$k"
 
             # --- Clone ---
@@ -142,7 +150,7 @@ else
                 destiny="$HOME/$destiny"
                 if [[ -L "$destiny" || ! -e "$destiny" ]]; then
                     :
-                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n)? " overwrite; [[ ! ${overwrite,,} == "y" ]]; then
+                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n) ? " overwrite; [[ ! ${overwrite,,} == "y" ]]; then
                     continue
                 fi
                 # --- Create Symlinks ---
@@ -158,7 +166,7 @@ else
                 destiny="$HOME/$destiny"
                 if [[ -L "$destiny" || ! -e "$destiny" ]]; then
                     :
-                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n)? " overwrite; [[ ! ${overwrite,,} == "y" ]]; then
+                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n) ? " overwrite; [[ ! ${overwrite,,} == "y" ]]; then
                     continue
                 fi
                 ln -sfnv "$origin" "$destiny"
