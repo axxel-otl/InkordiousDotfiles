@@ -127,7 +127,7 @@ else
 
             # --- Install ---
             common=$(yq ".syms.common // {} | keys[]" /opt/dots/$k/manifest.yaml)
-            special=$(yq ".syms."$distro" // {} | keys[]" /opt/dots/$k/manifest.yaml)
+            special=$(yq ".syms.$distro // {} | keys[]" /opt/dots/$k/manifest.yaml)
 
             # --- Install Common Packages ---
             for i in ${common[@]}; do
