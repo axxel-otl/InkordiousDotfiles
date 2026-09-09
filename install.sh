@@ -129,27 +129,27 @@ else
             common=$(yq ".syms.common // {} | keys[]" /opt/dots/$k/manifest.yaml)
             special=$(yq ".syms.$distro // {} | keys[]" /opt/dots/$k/manifest.yaml)
 
-            # --- Install Common Packages ---
+            # --- Install Common Symlinks ---
             for i in ${common[@]}; do
                 # --- Check if file doesn't exist or is a symlink ---
                 origin=$(yq ".syms.common.$i.origin // ''" /opt/dots/$k/manifest.yaml)
                 destiny=$(yq ".syms.common.$i.destiny // ''" /opt/dots/$k/manifest.yaml)
                 if [[ -L "$destiny" || ! -e "$destiny" ]]; then
                     :
-                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n)?" overwrite; [[ ${overwrite,,} == "n" ]]
+                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n)?" overwrite; [[ ! ${overwrite,,} == "y" ]]
                     continue
                 fi
                 ln -sfnv "$origin" "$destiny"
             done
 
-            # --- Install Special Packages ---
+            # --- Install Special Symlinks ---
             for i in ${special[@]}; do
                 # --- Check if file doesn't exist or is a symlink ---
                 origin=$(yq ".syms.$distro.$i.origin // ''" /opt/dots/$k/manifest.yaml)
                 destiny=$(yq ".syms.$distro.$i.destiny // ''" /opt/dots/$k/manifest.yaml)
                 if [[ -L "$destiny" || ! -e "$destiny" ]]; then
                     :
-                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n)?" overwrite; [[ ${overwrite,,} == "n" ]]
+                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n)?" overwrite; [[ ! ${overwrite,,} == "y" ]]
                     continue
                 fi
                 ln -sfnv "$origin" "$destiny"
