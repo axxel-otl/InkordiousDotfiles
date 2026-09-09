@@ -58,7 +58,7 @@ else
             sudo pacman -Sq --needed "extra/go-yq"
         else
             echo -e "${RED}ERROR${NC}: Couldn't install yq, aborting install..."
-            cd $owd
+            cd "$owd"
             exit 1
         fi
     fi
@@ -96,7 +96,7 @@ else
             # Install missing dependencies
             "${cmd[@]}"
         else
-            cd $owd
+            cd "$owd"
             exit 1
         fi
     else
@@ -128,6 +128,8 @@ else
             # --- Install ---
             common=$(yq ".syms.common // {} | keys[]" /opt/dots/$k/manifest.yaml)
             special=$(yq ".syms."$distro" // {} | keys[]" /opt/dots/$k/manifest.yaml)
+
+            # --- Install Common Packages ---
             for i in ${common[@]}; do
                 # --- Check if file doesn't exist or is a symlink ---
                 origin=$(yq ".syms.common.$i.origin // ''" /opt/dots/$k/manifest.yaml)
@@ -139,6 +141,8 @@ else
                 fi
                 ln -sfnv "$origin" "$destiny"
             done
+
+            # --- Install Special Packages ---
             for i in ${special[@]}; do
                 # --- Check if file doesn't exist or is a symlink ---
                 origin=$(yq ".syms.$distro.$i.origin // ''" /opt/dots/$k/manifest.yaml)
