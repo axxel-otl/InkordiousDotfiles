@@ -115,7 +115,7 @@ else
     cd /opt/dots
 
     # --- Clone repos ---
-    keys=$(yq ".repos // {} | keys[]" <<< ""$globalManifest"")
+    keys=$(yq ".repos // {} | keys[]" <<< "$globalManifest")
     for k in $keys; do
         if [[ $k == "dots" ]] || ( read -rp "Clone and install $k (y/n)? " install; [[ ${install,,} == "y" ]] ); then
             path="/opt/dots/$k"
@@ -137,7 +137,7 @@ else
                 elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n)?" overwrite; [[ ${overwrite,,} == "n" ]]
                     continue
                 fi
-                ln -sfnv $origin $destiny
+                ln -sfnv "$origin" "$destiny"
             done
             for i in ${special[@]}; do
                 # --- Check if file doesn't exist or is a symlink ---
