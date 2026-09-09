@@ -22,10 +22,10 @@ if [[ "${1:-}" == "-u" ]]; then
     echo -e "${GREY}  ██║██║╚██╗██║██╔═██╗"
     echo -e "${GREY}  ██║██║ ╚████║██║  ██╗"
     echo -e "${GREY}  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝"
-    echo -e "${RED}  Dots${NC}: uninstall"
+    echo -e "${RED}  Dots${NC}: Uninstall"
     echo -e "${GREY}=========================${NC}"
 
-    read -rp "Are you sure you want to uninstall the Inkordious Dotfiles(y/n)?" u
+    read -rp "Are you sure you want to uninstall the Inkordious Dotfiles(y/n)? " u
     if [[ ${u,,} == "y" ]]; then
         echo -e "${RED}Removing ${NC}/opt/dots..."
         sudo rm -rf "/opt/dots"
@@ -42,7 +42,7 @@ else
     echo -e "${GREY}  ██║██║╚██╗██║██╔═██╗"
     echo -e "${GREY}  ██║██║ ╚████║██║  ██╗"
     echo -e "${GREY}  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝"
-    echo -e "${RED}  Dots${NC}: install"
+    echo -e "${RED}  Dots${NC}: Install"
     echo -e "${GREY}=========================${NC}"
 
     # --- Detect yq ---
@@ -71,8 +71,8 @@ else
     failed=()
 
     for k in $keys; do
-        p=$(yq ".dependencies.$k.package // ''" <<< "$globalManifest")
-        r=$(yq ".dependencies.$k.repo // ''" <<< "$globalManifest")
+        p=$(yq ".dependencies.$k.package // \"\"" <<< "$globalManifest")
+        r=$(yq ".dependencies.$k.repo // \"\"" <<< "$globalManifest")
         f="$r/$p"
 
         if pacman -Qq "$p" &>/dev/null; then
@@ -121,9 +121,13 @@ else
             path="/opt/dots/$k"
 
             # --- Clone ---
-            ssh=$(yq ".repos.$k.ssh // ''" <<< "$globalManifest")
-            url=$(yq ".repos.$k.url // ''" <<< "$globalManifest")
-            git clone "$ssh" "$path" || git clone "$url" "$path"
+            ssh=$(yq ".repos.$k.ssh // \"\"" <<< "$globalManifest")
+            url=$(yq ".repos.$k.url // \"\"" <<< "$globalManifest")
+            if ! git -C $path rev-parse --is-inside-work-tree &>/dev/null; then
+                git clone "$ssh" "$path" || git clone "$url" "$path"
+            else
+                git -C $path pull
+            fi
 
             # --- Install ---
             common=$(yq ".syms.common // {} | keys[]" /opt/dots/$k/manifest.yaml)
@@ -132,24 +136,29 @@ else
             # --- Install Common Symlinks ---
             for i in ${common[@]}; do
                 # --- Check if file doesn't exist or is a symlink ---
-                origin=$(yq ".syms.common.$i.origin // ''" /opt/dots/$k/manifest.yaml)
-                destiny=$(yq ".syms.common.$i.destiny // ''" /opt/dots/$k/manifest.yaml)
+                origin=$(yq ".syms.common.$i.origin // \"\"" /opt/dots/$k/manifest.yaml)
+                origin=/opt/dots/$k/$origin
+                destiny=$(yq ".syms.common.$i.destiny // \"\"" /opt/dots/$k/manifest.yaml)
+                destiny="$HOME/$destiny"
                 if [[ -L "$destiny" || ! -e "$destiny" ]]; then
                     :
-                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n)?" overwrite; [[ ! ${overwrite,,} == "y" ]]
+                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n)? " overwrite; [[ ! ${overwrite,,} == "y" ]]; then
                     continue
                 fi
+                # --- Create Symlinks ---
                 ln -sfnv "$origin" "$destiny"
             done
 
             # --- Install Special Symlinks ---
             for i in ${special[@]}; do
                 # --- Check if file doesn't exist or is a symlink ---
-                origin=$(yq ".syms.$distro.$i.origin // ''" /opt/dots/$k/manifest.yaml)
-                destiny=$(yq ".syms.$distro.$i.destiny // ''" /opt/dots/$k/manifest.yaml)
+                origin=$(yq ".syms.$distro.$i.origin // \"\"" /opt/dots/$k/manifest.yaml)
+                origin=/opt/dots/$k/$origin
+                destiny=$(yq ".syms.$distro.$i.destiny // \"\"" /opt/dots/$k/manifest.yaml)
+                destiny="$HOME/$destiny"
                 if [[ -L "$destiny" || ! -e "$destiny" ]]; then
                     :
-                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n)?" overwrite; [[ ! ${overwrite,,} == "y" ]]
+                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n)? " overwrite; [[ ! ${overwrite,,} == "y" ]]; then
                     continue
                 fi
                 ln -sfnv "$origin" "$destiny"
@@ -159,4 +168,7 @@ else
 
     # --- Go Back to the Original Working Directory
     cd "$owd"
+
+    # --- Say Goodbye XD ---
+    echo -e "${GREEN}✅️ The Inkordious Dotfiles have been correctly installed"
 fi
