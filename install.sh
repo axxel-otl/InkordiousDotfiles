@@ -31,7 +31,7 @@ if [[ "${1:-}" == "-u" ]]; then
         sudo rm -rf "/opt/dots"
         echo -e "${GREEN}✅️ Finished uninstalling the Inkordious Dotfiles"
     else
-        echo -e "${READ}Aborting Uninstall..."
+        echo -e "${RED}Aborting Uninstall..."
     fi
 else
     # --- INK Banner ---
@@ -67,12 +67,12 @@ else
     globalManifest=$(curl -LfsS "https://gitlab.com/axxel-otl/InkordiousDotfiles/-/raw/core/manifest.yaml?ref_type=heads")
 
     # --- Detect Dependencies ---
-    keys=$(yq ".dependencies // {} | keys[]" <<< $globalManifest)
+    keys=$(yq ".dependencies // {} | keys[]" <<< "$globalManifest")
     failed=()
 
     for k in $keys; do
-        p=$(yq ".dependencies.$k.package // ''" <<< $globalManifest)
-        r=$(yq ".dependencies.$k.repo // ''" <<< $globalManifest)
+        p=$(yq ".dependencies.$k.package // ''" <<< "$globalManifest")
+        r=$(yq ".dependencies.$k.repo // ''" <<< "$globalManifest")
         f="$r/$p"
 
         if pacman -Qq "$p" &>/dev/null; then
@@ -103,27 +103,56 @@ else
         echo -e "${GREEN}✅️ All dependencies installed${NC}"
     fi
 
+    # --- Ask distro ---
+    declare -A distroArr=(["Arch Linux"]="arch" ["Bedrock Linux"]="bedrock")
+    distro=$(gum choose "${!distroArr[@]}")
+    distro="${distroArr[$distro]}"
+
     # --- Create dots directory ---
     sudo mkdir -p /opt/dots
     sudo chown "$USER:$USER" /opt/dots
     chmod 755 /opt/dots
+    cd /opt/dots
 
     # --- Clone repos ---
-    keys=$(yq ".repos // {} | keys[]" <<< $globalManifest)
+    keys=$(yq ".repos // {} | keys[]" <<< ""$globalManifest"")
     for k in $keys; do
-        if [[ $k == "dots" ]] || ( read -rp "Clone and install $k (y/n)? " install; [[ ${install,,} == y ]] ); then
-            route="/opt/dots/$k"
+        if [[ $k == "dots" ]] || ( read -rp "Clone and install $k (y/n)? " install; [[ ${install,,} == "y" ]] ); then
+            path="/opt/dots/$k"
 
             # --- Clone ---
-            ssh=$(yq ".repos.$k.ssh // ''" <<< $globalManifest)
-            url=$(yq ".repos.$k.url // ''" <<< $globalManifest)
-            git clone "$ssh" "$route" || git clone "$url" "$route"
+            ssh=$(yq ".repos.$k.ssh // ''" <<< "$globalManifest")
+            url=$(yq ".repos.$k.url // ''" <<< "$globalManifest")
+            git clone "$ssh" "$path" || git clone "$url" "$path"
 
             # --- Install ---
-            for 
+            common=$(yq ".syms.common // {} | keys[]" /opt/dots/$k/manifest.yaml)
+            special=$(yq ".syms."$distro" // {} | keys[]" /opt/dots/$k/manifest.yaml)
+            for i in ${common[@]}; do
+                # --- Check if file doesn't exist or is a symlink ---
+                origin=$(yq ".syms.common.$i.origin // ''" /opt/dots/$k/manifest.yaml)
+                destiny=$(yq ".syms.common.$i.destiny // ''" /opt/dots/$k/manifest.yaml)
+                if [[ -L "$destiny" || ! -e "$destiny" ]]; then
+                    :
+                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n)?" overwrite; [[ ${overwrite,,} == "n" ]]
+                    continue
+                fi
+                ln -sfnv $origin $destiny
+            done
+            for i in ${special[@]}; do
+                # --- Check if file doesn't exist or is a symlink ---
+                origin=$(yq ".syms.$distro.$i.origin // ''" /opt/dots/$k/manifest.yaml)
+                destiny=$(yq ".syms.$distro.$i.destiny // ''" /opt/dots/$k/manifest.yaml)
+                if [[ -L "$destiny" || ! -e "$destiny" ]]; then
+                    :
+                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n)?" overwrite; [[ ${overwrite,,} == "n" ]]
+                    continue
+                fi
+                ln -sfnv "$origin" "$destiny"
+            done
         fi
     done
 
     # --- Go Back to the Original Working Directory
-    cd $owd
+    cd "$owd"
 fi
