@@ -66,7 +66,6 @@ else
             sudo pacman -Sq --needed "extra/go-yq"
         else
             echo -e "${RED}ERROR${NC}: Couldn't install yq, aborting install..."
-            cd "$owd"
             exit 1
         fi
     fi
@@ -104,7 +103,6 @@ else
             # Install missing dependencies
             "${cmd[@]}"
         else
-            cd "$owd"
             exit 1
         fi
     else
@@ -120,7 +118,6 @@ else
     sudo mkdir -p /opt/dots
     sudo chown "$USER:$USER" /opt/dots
     chmod 755 /opt/dots
-    cd /opt/dots
 
     # --- Clone repos ---
     keys=$(yq ".repos // {} | keys[]" <<< "$globalManifest")
@@ -173,9 +170,6 @@ else
             done
         fi
     done
-
-    # --- Go Back to the Original Working Directory
-    cd "$owd"
 
     # --- Say Goodbye XD ---
     echo -e "${GREEN}✅️ The Inkordious Dotfiles have been correctly installed"
