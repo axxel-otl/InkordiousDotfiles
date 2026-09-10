@@ -128,10 +128,16 @@ else
             # --- Clone ---
             ssh=$(yq ".repos.$k.ssh // \"\"" <<< "$globalManifest")
             url=$(yq ".repos.$k.url // \"\"" <<< "$globalManifest")
-            if ! git -C $path rev-parse --is-inside-work-tree &>/dev/null; then
+            if ! git -C "$path" rev-parse --is-inside-work-tree &>/dev/null; then
                 git clone "$ssh" "$path" || git clone "$url" "$path"
-            else
-                git -C $path pull
+            fi
+            # --- Update ---
+            branch=$(yq ".repos.$k.branch // \"\"" <<< "$globalManifest")
+            git -C "$path" switch "$branch"
+            git -C "$path" pull
+            tag=$(git -C "$path" tag --sort=-version:refname | head -n1)
+            if [[ -n "$tag" ]]; then
+                git -C switch "$path" --detach "$tag"
             fi
 
             # --- Install ---

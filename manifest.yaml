@@ -10,9 +10,12 @@ repos:
   dots:
     ssh: "git@gitlab.com:axxel-otl/InkordiousDotfiles"
     url: "https://gitlab.com/axxel-otl/InkordiousDotfiles"
+    branch: "core"
   git-tools:
     ssh: "git@gitlab.com:axxel-otl/git-tools.git"
     url: "https://gitlab.com/axxel-otl/git-tools.git"
+    branch: "core"
   zsh:
     ssh: "git@gitlab.com:axxel-otl/zsh.git"
     url: "https://gitlab.com/axxel-otl/zsh.git"
+    branch: "core"
