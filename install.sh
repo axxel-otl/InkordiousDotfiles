@@ -137,7 +137,7 @@ else
             git -C "$path" pull
             tag=$(git -C "$path" tag --sort=-version:refname | head -n1)
             if [[ -n "$tag" ]]; then
-                git -C switch "$path" --detach "$tag"
+                git -C "$path" switch --detach "$tag"
             fi
 
             # --- Install ---
