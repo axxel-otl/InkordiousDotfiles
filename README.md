@@ -103,12 +103,12 @@ This repository supports 2 Linux Distributions so far: [Bedrock Linux](https://b
 ## Install Instructions
 To install my dotfiles, you can run this in your terminal:
 ```bash
-curl -LfsS "https://gitlab.com/axxel-otl/InkordiousDotfiles/-/raw/core/install.sh?ref_type=heads" | bash
+curl -LfsS "https://gitlab.com/axxel-otl/InkordiousDotfiles/-/raw/$(curl -LfsS 'https://gitlab.com/api/v4/projects/axxel-otl%2FInkordiousDotfiles/releases/permalink/latest' | yq -r '.tag_name')/install.sh" | bash
 ```
 ### Uninstall Instructions
 If you don't want to install them but to **un**install them, you can run this in your terminal:
 ```bash
-curl -LfsS "https://gitlab.com/axxel-otl/InkordiousDotfiles/-/raw/core/install.sh?ref_type=heads" | bash -s -- -u
+curl -LfsS "https://gitlab.com/axxel-otl/InkordiousDotfiles/-/raw/$(curl -LfsS 'https://gitlab.com/api/v4/projects/axxel-otl%2FInkordiousDotfiles/releases/permalink/latest' | yq -r '.tag_name')/install.sh" | bash -s -- -u
 ```
 
 And that's it, this way, you will have my dotfiles :3

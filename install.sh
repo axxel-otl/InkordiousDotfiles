@@ -143,6 +143,8 @@ else
             # --- Install ---
             common=$(yq ".syms.common // {} | keys[]" /opt/dots/$k/manifest.yaml)
             special=$(yq ".syms.$distro // {} | keys[]" /opt/dots/$k/manifest.yaml)
+            makeCommon=$(yq ".make.common // {} | keys[]" /opt/dots/$k/manifest.yaml)
+            makeSpecial=$(yq ".make.common // {} | keys[]" /opt/dots/$k/manifest.yaml)
 
             # --- Install Common Symlinks ---
             for i in ${common[@]}; do
