@@ -2,7 +2,6 @@
 
 # --- Settings ---
 set -euo pipefail # Exit with fail, no unset variables, activate pipefails
-owd=$(pwd)
 
 # --- Color Configs ---
 GREY="\033[38;2;169;174;239m" # #A9AEEF
@@ -28,11 +27,14 @@ if [[ "${1:-}" == "-u" ]]; then
     read -rp "Are you sure you want to uninstall the Inkordious Dotfiles (y/n) ? " u
     if [[ ${u,,} == "y" ]]; then
         echo "The following files or directories are linked to the Inkordious Dotfiles: "
-        find "$HOME" -type l -lname '/opt/dots/*' -printf '%p ' 2>/dev/null || true
+        syms=($(find "$HOME" -type l -lname '/opt/dots/*' -printf '%p ' 2>/dev/null))
         echo
-        read -rp "Remove them (y/n) ? " u
+        read -rp "Remove them and the dotfiles repo (y/n) ? " u
         if [[ ${u,,} == "y" ]]; then
             echo -e "${RED}Removing ${NC}/opt/dots..."
+            if (( ${#syms[@]} )); then
+                rm "${syms[@]}"
+            fi
             sudo rm -rf "/opt/dots"
             echo -e "${GREEN}✅️ Finished uninstalling the Inkordious Dotfiles"
         else
@@ -141,39 +143,43 @@ else
             fi
 
             # --- Install ---
-            common=$(yq ".syms.common // {} | keys[]" /opt/dots/$k/manifest.yaml)
-            special=$(yq ".syms.$distro // {} | keys[]" /opt/dots/$k/manifest.yaml)
-            makeCommon=$(yq ".make.common // {} | keys[]" /opt/dots/$k/manifest.yaml)
-            makeSpecial=$(yq ".make.common // {} | keys[]" /opt/dots/$k/manifest.yaml)
+            core=(
+                $(yq -r ".syms.common // {} | keys[] | \".syms.common.\" + ." /opt/dots/"$k"/manifest.yaml)
+                $(yq -r ".syms.$distro // {} | keys[] | \".syms.$distro.\" + ." /opt/dots/"$k"/manifest.yaml)
+                $(yq -r ".make.common // {} | keys[] | \".make.common.\" + ." /opt/dots/"$k"/manifest.yaml)
+                $(yq -r ".make.$distro // {} | keys[] | \".make.$distro.\" + ." /opt/dots/"$k"/manifest.yaml)
+            )
 
-            # --- Install Common Symlinks ---
-            for i in ${common[@]}; do
-                # --- Check if file doesn't exist or is a symlink ---
-                origin=$(yq ".syms.common.$i.origin // \"\"" /opt/dots/$k/manifest.yaml)
-                origin=/opt/dots/$k/$origin
-                destiny=$(yq ".syms.common.$i.destiny // \"\"" /opt/dots/$k/manifest.yaml)
+            # --- Install Symlinks ---
+            for i in "${core[@]}"; do
+                origin=$(yq -r "$i.origin // \"\"" /opt/dots/"$k"/manifest.yaml)
+                if [[ -z "$origin" ]]; then
+                    exit 1
+                fi
+                origin=/opt/dots/"$k"/"$origin"
+
+                destiny=$(yq -r "$i.destiny // \"\"" /opt/dots/"$k"/manifest.yaml)
+                if [[ -z "$destiny" ]]; then
+                    exit 1
+                fi
                 destiny="$HOME/$destiny"
+                mkdir -p "$(dirname "$destiny")"
+
+                # --- Check if file doesn't exist or is a symlink ---
+                if [[ "$i" == .make.* && ! -e "$origin" ]]; then
+                    content=$(yq -r "$i.content // \"\"" /opt/dots/"$k"/manifest.yaml)
+                    echo "$content" > "$origin"
+                fi
+
                 if [[ -L "$destiny" || ! -e "$destiny" ]]; then
                     :
-                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n) ? " overwrite; [[ ! ${overwrite,,} == "y" ]]; then
+                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n) ? " overwrite; [[ "${overwrite,,}" == "y" ]]; then
+                    rm "$destiny"
+                else
                     continue
                 fi
+
                 # --- Create Symlinks ---
-                ln -sfnv "$origin" "$destiny"
-            done
-
-            # --- Install Special Symlinks ---
-            for i in ${special[@]}; do
-                # --- Check if file doesn't exist or is a symlink ---
-                origin=$(yq ".syms.$distro.$i.origin // \"\"" /opt/dots/$k/manifest.yaml)
-                origin=/opt/dots/$k/$origin
-                destiny=$(yq ".syms.$distro.$i.destiny // \"\"" /opt/dots/$k/manifest.yaml)
-                destiny="$HOME/$destiny"
-                if [[ -L "$destiny" || ! -e "$destiny" ]]; then
-                    :
-                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n) ? " overwrite; [[ ! ${overwrite,,} == "y" ]]; then
-                    continue
-                fi
                 ln -sfnv "$origin" "$destiny"
             done
         fi
