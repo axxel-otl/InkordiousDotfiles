@@ -24,12 +24,12 @@ if [[ "${1:-}" == "-u" ]]; then
     echo -e "${RED}  Dots${NC}: Uninstall"
     echo -e "${GREY}=========================${NC}"
 
-    read -rp "Are you sure you want to uninstall the Inkordious Dotfiles (y/n) ? " u
+    read -rp "Are you sure you want to uninstall the Inkordious Dotfiles (y/n) ? " u < /dev/tty
     if [[ ${u,,} == "y" ]]; then
         echo "The following files or directories are linked to the Inkordious Dotfiles: "
         syms=($(find "$HOME" -type l -lname '/opt/dots/*' -printf '%p ' 2>/dev/null))
         echo
-        read -rp "Remove them and the dotfiles repo (y/n) ? " u
+        read -rp "Remove them and the dotfiles repo (y/n) ? " u < /dev/tty
         if [[ ${u,,} == "y" ]]; then
             echo -e "${RED}Removing ${NC}/opt/dots..."
             if (( ${#syms[@]} )); then
@@ -62,7 +62,7 @@ else
         # --- Install yq ---
         cmd=(sudo pacman -Sq --needed "extra/go-yq")
         echo -e "${YELLOW}❕️You can install yq this way${NC}: ${cmd[@]}"
-        read -rp "Install yq (y/n) ? " install
+        read -rp "Install yq (y/n) ? " install < /dev/tty
         if [[ ${install,,} == "y" ]]; then
             echo "Installing yq..."
             sudo pacman -Sq --needed "extra/go-yq"
@@ -100,7 +100,7 @@ else
         echo "${cmd[@]}"
         echo -e "${YELLOW}❕️You can install the missing dependencies this way${NC}: ${cmd[@]}"
 
-        read -rp "Install (y/n) ? " install
+        read -rp "Install (y/n) ? " install < /dev/tty
         if [[ ${install,,} == "y" ]]; then
             # Install missing dependencies
             "${cmd[@]}"
@@ -124,7 +124,7 @@ else
     # --- Clone repos ---
     keys=$(yq ".repos // {} | keys[]" <<< "$globalManifest")
     for k in $keys; do
-        if [[ $k == "dots" ]] || ( read -rp "Clone and install $k (y/n) ? " install; [[ ${install,,} == "y" ]] ); then
+        if [[ $k == "dots" ]] || ( read -rp "Clone and install $k (y/n) ? " install < /dev/tty; [[ ${install,,} == "y" ]] ); then
             path="/opt/dots/$k"
 
             # --- Clone ---
@@ -173,7 +173,7 @@ else
 
                 if [[ -L "$destiny" || ! -e "$destiny" ]]; then
                     :
-                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n) ? " overwrite; [[ "${overwrite,,}" == "y" ]]; then
+                elif read -rp "$destiny is a normal file and not a symlink, overwrite (y/n) ? " overwrite < /dev/tty; [[ "${overwrite,,}" == "y" ]]; then
                     rm "$destiny"
                 else
                     continue
