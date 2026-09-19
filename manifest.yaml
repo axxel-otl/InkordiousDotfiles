@@ -19,3 +19,5 @@ repos:
     ssh: "git@gitlab.com:axxel-otl/zsh.git"
     url: "https://gitlab.com/axxel-otl/zsh.git"
     branch: "core"
+  kitty:
+    ssh: "git@gitlab.com:axxel-otl/kitty.git"
