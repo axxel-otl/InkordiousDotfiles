@@ -21,3 +21,5 @@ repos:
     branch: "core"
   kitty:
     ssh: "git@gitlab.com:axxel-otl/kitty.git"
+    url: "https://gitlab.com/axxel-otl/kitty.git"
+    branch: "core"
