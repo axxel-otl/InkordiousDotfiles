@@ -15,11 +15,11 @@ repos:
     ssh: "git@gitlab.com:axxel-otl/git-tools.git"
     url: "https://gitlab.com/axxel-otl/git-tools.git"
     branch: "core"
-  zsh:
-    ssh: "git@gitlab.com:axxel-otl/zsh.git"
-    url: "https://gitlab.com/axxel-otl/zsh.git"
-    branch: "core"
   kitty:
     ssh: "git@gitlab.com:axxel-otl/kitty.git"
     url: "https://gitlab.com/axxel-otl/kitty.git"
+    branch: "core"
+  zsh:
+    ssh: "git@gitlab.com:axxel-otl/zsh.git"
+    url: "https://gitlab.com/axxel-otl/zsh.git"
     branch: "core"
