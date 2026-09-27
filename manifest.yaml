@@ -1,9 +1,9 @@
 ---
 dependencies:
   git:
-    repo: "extra"
+    package: "git"
   yq:
-    repo: "extra"
+    package: "go-yq"
 repos:
   dots:
     ssh: "git@gitlab.com:axxel-otl/InkordiousDotfiles"
