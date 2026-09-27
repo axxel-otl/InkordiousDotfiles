@@ -5,7 +5,7 @@ set -euo pipefail # Exit with fail, no unset variables, activate pipefails
 
 # --- Color Configs ---
 GREY="\033[38;2;169;174;239m" # #A9AEEF
-PINK="\033[38;2;255;92;120m"  # #FF5C78
+# PINK="\033[38;2;255;92;120m"  # #FF5C78
 GREEN="\033[38;2;155;254;206m" # #9BFECE
 YELLOW="\033[38;2;255;245;155m" # #FFF59B
 RED="\033[38;2;253;70;99m" # #FD4663
@@ -55,17 +55,26 @@ else
     echo -e "${RED}  Dots${NC}: Install"
     echo -e "${GREY}=========================${NC}"
 
+    # --- Ask distro ---
+    declare -A distroArr=(["Arch Linux"]="arch" ["Bedrock Linux"]="bedrock")
+    distro=$(gum choose "${!distroArr[@]}")
+    distro="${distroArr[$distro]}"
+    if [[ "$distro" == "arch" ]]; then
+        baseCmd="pacman"
+    elif [[ "$distro" == "bedrock" ]]; then
+        baseCmd="pmm" # Here I should add the on-the-fly flag when it starts existing
+    fi
+
     # --- Detect yq ---
-    if ! pacman -Qq "go-yq" &>/dev/null; then
+    if ! "$baseCmd" -Qk "go-yq" &>/dev/null; then
         echo -e "${RED}❌️ ERROR${NC}: yq is required to run the installer"
 
         # --- Install yq ---
-        cmd=(sudo pacman -Sq --needed "extra/go-yq")
-        echo -e "${YELLOW}❕️You can install yq this way${NC}: ${cmd[@]}"
+        echo -e "${YELLOW}❕️You can install yq this way${NC}: sudo $baseCmd -Sq go-yq"
         read -rp "Install yq (y/n) ? " install < /dev/tty
         if [[ ${install,,} == "y" ]]; then
             echo "Installing yq..."
-            sudo pacman -Sq --needed "extra/go-yq"
+            sudo "$baseCmd" -Sq go-yq
         else
             echo -e "${RED}ERROR${NC}: Couldn't install yq, aborting install..."
             exit 1
@@ -81,40 +90,30 @@ else
 
     for k in $keys; do
         p=$(yq ".dependencies.$k.package // \"\"" <<< "$globalManifest")
-        r=$(yq ".dependencies.$k.repo // \"\"" <<< "$globalManifest")
-        f="$r/$p"
 
-        if pacman -Qq "$p" &>/dev/null; then
-            echo -e "${GREEN}✅️ $f is installed...${NC}"
+        if "$baseCmd" -Qk "$p" &>/dev/null; then
+            echo -e "${GREEN}✅️ $p is installed...${NC}"
         else
-            echo -e "${RED}❌️ ERROR${NC}: package $r/$p is not installed"
-            failed+=("$f")
+            echo -e "${RED}❌️ ERROR${NC}: package $p is not installed"
+            failed+=("$p")
         fi
     done
 
     # --- Check if everything's right ---
     if (( ${#failed[@]} )); then
-        echo -e "${RED}❌️ ERROR${NC}: Dependencies ${failed[@]} not installed"
-
-        cmd=(sudo pacman -Sq --needed "${failed[@]}")
-        echo "${cmd[@]}"
-        echo -e "${YELLOW}❕️You can install the missing dependencies this way${NC}: ${cmd[@]}"
+        echo -e "${RED}❌️ ERROR${NC}: Dependencies ${failed[*]} not installed"
+        echo -e "${YELLOW}❕️You can install the missing dependencies this way${NC}: sudo $baseCmd -Sq ${failed[*]}"
 
         read -rp "Install (y/n) ? " install < /dev/tty
         if [[ ${install,,} == "y" ]]; then
             # Install missing dependencies
-            "${cmd[@]}"
+            sudo "$baseCmd" -Sq "${failed[@]}"
         else
             exit 1
         fi
     else
         echo -e "${GREEN}✅️ All dependencies installed${NC}"
     fi
-
-    # --- Ask distro ---
-    declare -A distroArr=(["Arch Linux"]="arch" ["Bedrock Linux"]="bedrock")
-    distro=$(gum choose "${!distroArr[@]}")
-    distro="${distroArr[$distro]}"
 
     # --- Create dots directory ---
     sudo mkdir -p /opt/dots
