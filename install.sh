@@ -27,14 +27,14 @@ if [[ "${1:-}" == "-u" ]]; then
     read -rp "Are you sure you want to uninstall the Inkordious Dotfiles (y/n) ? " u < /dev/tty
     if [[ ${u,,} == "y" ]]; then
         echo "The following files or directories are linked to the Inkordious Dotfiles: "
-        syms=$(find "$HOME" -type l -lname '/opt/dots/*' 2> /dev/null; true)
-        echo "$syms"
+        readarray -t syms < <(find "$HOME" -type l -lname '/opt/dots/*' 2> /dev/null || true)
+        echo "${syms[*]}"
         echo
         read -rp "Remove them and the dotfiles repo (y/n) ? " u < /dev/tty
         if [[ ${u,,} == "y" ]]; then
             echo -e "${RED}Removing ${NC}/opt/dots..."
-            if [[ -z syms ]]; then
-                rm "$syms"
+            if (( ${#syms[@]} )); then
+                rm "${syms[@]}"
             fi
             sudo rm -rf "/opt/dots"
             echo -e "${GREEN}✅️ Finished uninstalling the Inkordious Dotfiles"
